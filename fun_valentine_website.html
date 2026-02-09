@@ -194,6 +194,41 @@
       }
     }
 
+    /* BOUQUET POP */
+    .bouquet {
+      position: absolute;
+      left: 50%;
+      bottom: 12px;
+      transform: translate(-50%, 120px) scale(0.4);
+      width: 170px;
+      height: auto;
+      opacity: 0;
+      z-index: 4;
+      pointer-events: none;
+      filter: drop-shadow(0 12px 22px rgba(255, 92, 138, 0.3));
+    }
+
+    .bouquet.show {
+      animation: bouquetPop 1.2s ease forwards;
+    }
+
+    @keyframes bouquetPop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 120px) scale(0.4) rotate(-8deg);
+      }
+
+      60% {
+        opacity: 1;
+        transform: translate(-50%, -6px) scale(1.05) rotate(4deg);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1) rotate(0deg);
+      }
+    }
+
     /* LAYOUT */
     .layout {
       position: relative;
@@ -201,7 +236,6 @@
       display: flex;
       align-items: center;
       gap: 2.6rem;
-      flex-wrap: wrap;
       width: min(1100px, 92vw);
       justify-content: center;
     }
@@ -602,29 +636,6 @@
       transform: scale(1.04);
     }
 
-    .share-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.7rem;
-      margin-top: 0.4rem;
-    }
-
-    .copy-link {
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, #ff8fab, #ffd6a5);
-      color: #7b2944;
-      box-shadow: 0 8px 18px rgba(255, 123, 123, 0.3);
-    }
-
-    .share-hint {
-      font-size: 0.85rem;
-      color: #9b4b63;
-      text-align: center;
-      max-width: 260px;
-    }
-
     /* SURPRISE FEATURES */
     .heart-trail {
       position: fixed;
@@ -668,20 +679,6 @@
     }
 
     /* RESPONSIVE */
-    @media (max-width: 900px) {
-      .layout {
-        gap: 2rem;
-      }
-
-      .side-photo {
-        width: 240px;
-      }
-
-      .card {
-        max-width: 420px;
-      }
-    }
-
     @media (max-width: 520px) {
       .layout {
         flex-direction: column;
@@ -770,8 +767,9 @@
     <!-- Main Card -->
     <div class="card" id="mainCard">
     <div class="ribbon">Valentine's Day</div>
-      <div id="askState">
-        <h1 id="mainTitle"></h1>
+    <img class="bouquet" id="bouquet" src="flower.jpeg" alt="" aria-hidden="true">
+    <div id="askState">
+      <h1 id="mainTitle"></h1>
 
       <div class="pill-row">
         <span class="pill">Sweet</span>
@@ -803,15 +801,9 @@
 
       <p class="signature">— Guyo</p>
 
-      <div class="share-actions">
       <a id="shareBtn" href="#" class="share-link" target="_blank">
         Tell me on WhatsApp 💬
       </a>
-      <button id="copyLinkBtn" class="share-link copy-link" type="button">Copy Link</button>
-      <div id="shareHint" class="share-hint hidden">
-        Open this page from a hosted link (GitHub Pages or Netlify) to share it.
-      </div>
-    </div>
 
       <div class="mini-note">P.S. I owe you a thousand hugs.</div>
     </div>
@@ -826,8 +818,7 @@
     const music = document.getElementById('bgMusic');
     const musicToggle = document.getElementById('musicToggle');
     const shareBtn = document.getElementById('shareBtn');
-    const copyLinkBtn = document.getElementById('copyLinkBtn');
-    const shareHint = document.getElementById('shareHint');
+    const bouquet = document.getElementById('bouquet');
     const sidePhotoImg = document.getElementById('sidePhotoImg');
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -877,6 +868,12 @@
 
       fireConfetti();
       document.body.classList.add('celebrate');
+      if (prefersReducedMotion) {
+        bouquet.style.opacity = '1';
+        bouquet.style.transform = 'translate(-50%, 0) scale(1)';
+      } else {
+        bouquet.classList.add('show');
+      }
       if (sidePhotoImg) {
         sidePhotoImg.src = 'flower.jpeg';
       }
@@ -887,39 +884,9 @@
         successState.classList.remove('hidden');
 
         const text = "Hey Guyo! I just said YES! 🥐 Can't wait for Valentine's! 💖";
-        shareBtn.href = `https://wa.me/?text=${encodeURIComponent(text + " " + window.location.href)}`;
-        if (shareHint) {
-          shareHint.classList.toggle('hidden', window.location.protocol !== 'file:');
-        }
+        shareBtn.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
       }, 450);
     });
-
-    if (copyLinkBtn) {
-      copyLinkBtn.addEventListener('click', async () => {
-        const url = window.location.href;
-        try {
-          if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(url);
-          } else {
-            const tempInput = document.createElement('input');
-            tempInput.value = url;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            tempInput.remove();
-          }
-          copyLinkBtn.textContent = 'Copied!';
-          setTimeout(() => {
-            copyLinkBtn.textContent = 'Copy Link';
-          }, 1600);
-        } catch (err) {
-          copyLinkBtn.textContent = 'Copy failed';
-          setTimeout(() => {
-            copyLinkBtn.textContent = 'Copy Link';
-          }, 1600);
-        }
-      });
-    }
 
     // 3. Confetti Function using canvas-confetti
     function fireConfetti() {
